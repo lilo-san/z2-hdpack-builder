@@ -4,9 +4,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Zelda2HiResGenerator {
@@ -71,6 +73,11 @@ public class Zelda2HiResGenerator {
 
         hires.append("\n").append("\n");
 
+        hires.append(Files.readString(Path.of(CUSTOM_ASSETS + "/hires-loading-screen.txt"), StandardCharsets.UTF_8));
+        copyDirectory(CUSTOM_ASSETS + "/-loading-screen", HDPACK_ASSETS + "/-loading-screen");
+
+        hires.append("\n").append("\n");
+
         hires.append("# Map Backgrounds").append("\n");
         addBackgrounds(hires, getMapBackgrounds(ORIGINAL_ASSETS), ORIGINAL_ASSETS);
         addBackgrounds(hires, getMapBackgrounds(CUSTOM_ASSETS), CUSTOM_ASSETS);
@@ -78,7 +85,23 @@ public class Zelda2HiResGenerator {
         Files.write(Path.of(HDPACK_ASSETS + "/" + NAME), hires.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    public static void copyDirectory(String sourceDirectoryLocation, String destinationDirectoryLocation)
+            throws IOException {
+
+        Files.walk(Paths.get(sourceDirectoryLocation))
+                .forEach(source -> {
+                    Path destination = Paths.get(destinationDirectoryLocation, source.toString()
+                            .substring(sourceDirectoryLocation.length()));
+                    try {
+                        Files.copy(source, destination);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+
     private static void addBackgrounds(StringBuilder hires, List<String> originalBackgrounds, String backgroundsRoot) throws Exception {
+
         for (String background: originalBackgrounds) {
             String backgroundPNG = getPNGBackground(background, backgroundsRoot);
             String name = background.substring(background.indexOf("/") + 1, background.indexOf(".tmx"));
