@@ -1,4 +1,4 @@
-# Zelda HD Pack Builder
+# Zelda 2 : HD Pack Builder
 Structure and Usage
 
 ## original-assets
