@@ -1,0 +1,12 @@
+# Mac
+.DS_Store
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+
+# Output directories from the build process
+out/
+
