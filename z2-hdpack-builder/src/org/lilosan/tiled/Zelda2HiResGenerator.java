@@ -1,6 +1,9 @@
 package org.lilosan.tiled;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,8 +72,15 @@ public class Zelda2HiResGenerator {
         hires.append("\n").append("\n");
 
         hires.append("# Map Backgrounds").append("\n");
-        for (String background: getMapBackgrounds(ORIGINAL_ASSETS)) {
-            String backgroundPNG = background.replace(".tmx", ".png");
+        addBackgrounds(hires, getMapBackgrounds(ORIGINAL_ASSETS), ORIGINAL_ASSETS);
+        addBackgrounds(hires, getMapBackgrounds(CUSTOM_ASSETS), CUSTOM_ASSETS);
+
+        Files.write(Path.of(HDPACK_ASSETS + "/" + NAME), hires.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void addBackgrounds(StringBuilder hires, List<String> originalBackgrounds, String backgroundsRoot) throws Exception {
+        for (String background: originalBackgrounds) {
+            String backgroundPNG = getPNGBackground(background, backgroundsRoot);
             String name = background.substring(background.indexOf("/") + 1, background.indexOf(".tmx"));
             String[] locationCodes = name.split("-")[0].split("\\|");
             String[] mapCodes = name.split("-")[1].split("\\|");
@@ -119,8 +129,30 @@ public class Zelda2HiResGenerator {
             }
             hires.append("\n");
         }
+    }
 
-        Files.write(Path.of(HDPACK_ASSETS + "/" + NAME), hires.toString().getBytes(StandardCharsets.UTF_8));
+    private static String getPNGBackground(String background, String backgroundsRoot) throws Exception {
+        String area = background.substring(0, background.indexOf('/'));
+        String tsx = backgroundsRoot + "/" + area + "/" + area + ".tsx";
+        TiledTSX tsxFile = TiledTSX.getInstance(new File(tsx));
+        String tmx = backgroundsRoot + "/" + background;
+        TiledTMX tmxFile = TiledTMX.getInstance(new File(tmx));
+
+        BufferedImage image = tmxFile.getBufferedImage(tsxFile, 0);
+        int[] imageRGB = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+        int[] imageSectionRGB = image.getRGB(1024, 0, 799, image.getHeight(), null, 0, image.getWidth());
+
+        int SPACING = 32;
+
+        BufferedImage hdPackImage = new BufferedImage(image.getWidth(), image.getHeight() * 2 + (SPACING * 4), BufferedImage.TYPE_INT_ARGB);
+        hdPackImage.setRGB(0, SPACING * 2, image.getWidth(), image.getHeight(), imageRGB, 0, image.getWidth());
+        hdPackImage.setRGB(0, image.getHeight() + (SPACING * 4), image.getWidth(), image.getHeight(), imageRGB, 0, image.getWidth());
+        hdPackImage.setRGB(0, image.getHeight() + (SPACING * 4), 799, image.getHeight(), imageSectionRGB, 0, image.getWidth());
+        
+        File directory = new File(HDPACK_ASSETS + "/" + area);
+        directory.mkdir();
+        ImageIO.write(hdPackImage, "png", new FileOutputStream(HDPACK_ASSETS + "/" + background.replace(".tmx", ".png")));
+        return background.replace(".tmx", ".png");
     }
 
     public static String getHeader() {
@@ -152,7 +184,6 @@ public class Zelda2HiResGenerator {
         values.add("1");
         values.add("2");
         values.add("3");
-//        values.add("FF");
         return values;
     }
 
