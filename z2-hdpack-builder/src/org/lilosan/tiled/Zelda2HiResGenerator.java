@@ -110,7 +110,14 @@ public class Zelda2HiResGenerator {
 
         for (String background: originalBackgrounds) {
             System.out.println("Processing: " + backgroundsRoot + "/" + background);
-            String backgroundPNG = makePNGBackground(background, backgroundsRoot);
+
+            boolean isCave = background.substring(0, background.indexOf('/')).equals("cave");
+            String backgroundPNG = makeHDPackBackground(background, backgroundsRoot, false);
+            String backgroundPNGDark = null;
+            if(isCave) {
+                backgroundPNGDark = makeHDPackBackground(background, backgroundsRoot, isCave);
+            }
+
             if (hires == null) {
                 continue;
             }
@@ -150,11 +157,18 @@ public class Zelda2HiResGenerator {
 
                         String backgroundCondition = "[" + "LOCATION_" + locationCode + "&"
                                                         + "MAP_" + mapCode + "&"
-                                                        + sliceRule + "]"
+                                                        + sliceRule + ""
+                                                        + ((isCave)?"&HAVE_CANDLE_1":"") + "]"
                                                         + "<background>" + backgroundPNG + ",1,1,1," + STATIC_BACKGROUND_LAYER + "," + leftOffset + "," + topOffset;
-
                         hires.append(backgroundCondition).append("\n");
-
+                        if (isCave) {
+                            String backgroundConditionDark = "[" + "LOCATION_" + locationCode + "&"
+                                    + "MAP_" + mapCode + "&"
+                                    + sliceRule + ""
+                                    + ((isCave)?"&!HAVE_CANDLE_1":"") + "]"
+                                    + "<background>" + backgroundPNGDark + ",1,1,1," + STATIC_BACKGROUND_LAYER + "," + leftOffset + "," + topOffset;
+                            hires.append(backgroundConditionDark).append("\n");
+                        }
                     }
 
 
@@ -164,34 +178,35 @@ public class Zelda2HiResGenerator {
         }
     }
 
-    private static String makePNGBackground(String background, String backgroundsRoot) throws Exception {
+    private static String makeHDPackBackground(String background, String backgroundsRoot, boolean dark) throws Exception {
         String area = background.substring(0, background.indexOf('/'));
-        String tsx = backgroundsRoot + "/" + area + "/" + area + ".tsx";
+        String tsx = backgroundsRoot + "/" + area + "/" + area + ((dark)?"-dark":"") + ".tsx";
         TiledTSX tsxFile = TiledTSX.getInstance(new File(tsx));
         String tmx = backgroundsRoot + "/" + background;
         TiledTMX tmxFile = TiledTMX.getInstance(new File(tmx));
 
         BufferedImage image = tmxFile.getBufferedImage(tsxFile, 0);
         int[] imageRGB = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-        int[] imageSectionRGB = image.getRGB(1024, 0, 799, image.getHeight(), null, 0, image.getWidth());
+        int[] imageSectionRGB = image.getRGB(512*SCALE, 0, (int)(399.5 * SCALE), image.getHeight(), null, 0, image.getWidth());
 
-        int SPACING = 32;
+        int SPACING = 16 * SCALE;
 
         BufferedImage hdPackImage = new BufferedImage(image.getWidth(), image.getHeight() * 2 + (SPACING * 4), BufferedImage.TYPE_INT_ARGB);
         hdPackImage.setRGB(0, SPACING * 2, image.getWidth(), image.getHeight(), imageRGB, 0, image.getWidth());
         hdPackImage.setRGB(0, image.getHeight() + (SPACING * 4), image.getWidth(), image.getHeight(), imageRGB, 0, image.getWidth());
-        hdPackImage.setRGB(0, image.getHeight() + (SPACING * 4), 799, image.getHeight(), imageSectionRGB, 0, image.getWidth());
+        hdPackImage.setRGB(0, image.getHeight() + (SPACING * 4), (int)(399.5 * SCALE), image.getHeight(), imageSectionRGB, 0, image.getWidth());
         
         File directory = new File(HDPACK_ASSETS + "/" + area);
         directory.mkdir();
-        ImageIO.write(hdPackImage, "png", new FileOutputStream(HDPACK_ASSETS + "/" + background.replace(".tmx", ".png")));
-        return background.replace(".tmx", ".png");
+        String relativePathFilename = background.replace(".tmx", ((dark)?"-dark.png":".png"));
+        ImageIO.write(hdPackImage, "png", new FileOutputStream(HDPACK_ASSETS + "/" + relativePathFilename));
+        return relativePathFilename;
     }
 
     public static String getHeader() {
         StringBuilder header = new StringBuilder();
         header.append("<ver>106\n");
-        header.append("<scale>2\n");
+        header.append("<scale>" + SCALE + "\n");
         header.append("<supportedRom>2B293E713ED2ECC6D55A6816CAD3EC0F67D0E43E");
         return header.toString();
     }
