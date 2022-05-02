@@ -42,6 +42,7 @@ public class Zelda2HiResGenerator {
     public static final String LOCATION_CODE_CONSTANT = "76E";
     public static final String MAP_CODE_CONSTANT = "561";
     public static final String MAP_SLICE_CONSTANT = "3B";
+    public static final String HAVE_CANDLE_CONSTANT = "785";
 
     public static void main(String args[]) throws Exception {
         StringBuilder hires = new StringBuilder();
@@ -49,7 +50,7 @@ public class Zelda2HiResGenerator {
 
         hires.append("\n").append("\n");
 
-        hires.append("# Location Codes").append("\n");
+        hires.append("# Location conditions").append("\n");
         for (String locationCode:getLocationCodes()) {
             Condition locationCondition = new Condition("LOCATION", LOCATION_CODE_CONSTANT, "==", locationCode);
             hires.append(locationCondition).append("\n");
@@ -57,7 +58,7 @@ public class Zelda2HiResGenerator {
 
         hires.append("\n").append("\n");
 
-        hires.append("# Map Codes").append("\n");
+        hires.append("# Map conditions").append("\n");
         for (String mapCode:getMapCodes()) {
             Condition mapCondition = new Condition("MAP", MAP_CODE_CONSTANT, "==", mapCode);
             hires.append(mapCondition).append("\n");
@@ -65,12 +66,17 @@ public class Zelda2HiResGenerator {
 
         hires.append("\n").append("\n");
 
-        hires.append("# Map Slice Codes").append("\n");
+        hires.append("# Map Slice conditions").append("\n");
         for (String mapSliceCode:getMapSliceCodes()) {
             Condition mapSlice = new Condition("MAP_SLICE", MAP_SLICE_CONSTANT, "==", mapSliceCode);
             hires.append(mapSlice).append("\n");
         }
 
+        hires.append("\n").append("\n");
+
+        hires.append("# Item conditions").append("\n");
+        Condition haveCandle = new Condition("HAVE_CANDLE", HAVE_CANDLE_CONSTANT, "==", "1");
+        hires.append(haveCandle);
         hires.append("\n").append("\n");
 
         hires.append(Files.readString(Path.of(CUSTOM_ASSETS + "/hires-loading-screen.txt"), StandardCharsets.UTF_8));
@@ -80,7 +86,7 @@ public class Zelda2HiResGenerator {
 
         hires.append("# Map Backgrounds").append("\n");
         addBackgrounds(hires, getMapBackgrounds(ORIGINAL_ASSETS), ORIGINAL_ASSETS);
-        addBackgrounds(hires, getMapBackgrounds(CUSTOM_ASSETS), CUSTOM_ASSETS);
+        addBackgrounds(null, getMapBackgrounds(CUSTOM_ASSETS), CUSTOM_ASSETS);
 
         Files.write(Path.of(HDPACK_ASSETS + "/" + NAME), hires.toString().getBytes(StandardCharsets.UTF_8));
     }
@@ -103,7 +109,11 @@ public class Zelda2HiResGenerator {
     private static void addBackgrounds(StringBuilder hires, List<String> originalBackgrounds, String backgroundsRoot) throws Exception {
 
         for (String background: originalBackgrounds) {
-            String backgroundPNG = getPNGBackground(background, backgroundsRoot);
+            System.out.println("Processing: " + backgroundsRoot + "/" + background);
+            String backgroundPNG = makePNGBackground(background, backgroundsRoot);
+            if (hires == null) {
+                continue;
+            }
             String name = background.substring(background.indexOf("/") + 1, background.indexOf(".tmx"));
             String[] locationCodes = name.split("-")[0].split("\\|");
             String[] mapCodes = name.split("-")[1].split("\\|");
@@ -154,7 +164,7 @@ public class Zelda2HiResGenerator {
         }
     }
 
-    private static String getPNGBackground(String background, String backgroundsRoot) throws Exception {
+    private static String makePNGBackground(String background, String backgroundsRoot) throws Exception {
         String area = background.substring(0, background.indexOf('/'));
         String tsx = backgroundsRoot + "/" + area + "/" + area + ".tsx";
         TiledTSX tsxFile = TiledTSX.getInstance(new File(tsx));

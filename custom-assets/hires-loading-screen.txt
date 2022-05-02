@@ -1,14 +1,16 @@
-#Epilepsy Fix
+#Loading Conditions
 <condition>FullRed,tileAtPosition,0,0,3F4,16301216
 <condition>FullBlue,tileAtPosition,0,0,3F4,12301216
 <condition>FullGreen,tileAtPosition,0,0,3F4,2A301216
 
+
+#Epilepsy Fix Backgrounds
 [FullRed&!GameOver]<background>-loading-screen/epilepsy-fix-screen.png,1,0,0,29
 [FullBlue]<background>-loading-screen/epilepsy-fix-screen.png,1,0,0,29
 [FullGreen]<background>-loading-screen/epilepsy-fix-screen.png,1,0,0,29
 
 
-#Loading Screen
+#Loading Screen Conditions
 <condition>TitleScreen,spriteAtPosition,120,118,F8,FF162630
 <condition>FileSelect,memoryCheckConstant,1B,>,1
 <condition>LifeScreen,tileAtPosition,152,96,3FC,0F301216
@@ -17,4 +19,6 @@
 <condition>OnOverworld,memoryCheckConstant,736,==,5
 <condition>InLevel,memoryCheckConstant,736,==,B
 
+
+#Loading Screen Backgrounds
 [!OnOverworld&!InLevel&!TitleScreen&!FileSelect&!FullRed&!FullBlue&!FullGreen&!LifeScreen&!GameOver&!ContinueOrSave]<background>-loading-screen/loading-screen.png,1,0,0,39
