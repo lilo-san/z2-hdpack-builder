@@ -79,10 +79,32 @@ public class Zelda2HiResGenerator {
         hires.append(haveCandle);
         hires.append("\n").append("\n");
 
+        hires.append("# Loading Screen").append("\n");
         hires.append(Files.readString(Path.of(CUSTOM_ASSETS + "/hires-loading-screen.txt"), StandardCharsets.UTF_8));
         copyDirectory(CUSTOM_ASSETS + "/-loading-screen", HDPACK_ASSETS + "/-loading-screen");
 
         hires.append("\n").append("\n");
+
+// Sprites, only used to convert from 1x
+//        String TILE_TAG = "<tile>";
+//        String[] townFolkSpritesLines = Files.readString(Path.of(CUSTOM_ASSETS + "/town-folk.txt"), StandardCharsets.UTF_8).split("\n");
+//        for (String townFolkSpritesLineIn:townFolkSpritesLines) {
+//            String townFolkSpritesLineOut = null;
+//            if (townFolkSpritesLineIn.contains(TILE_TAG)) {
+//                int indexOfTileTag = townFolkSpritesLineIn.indexOf(TILE_TAG);
+//                String spriteCondition = townFolkSpritesLineIn.substring(0, indexOfTileTag);
+//                String spriteInfo[] = townFolkSpritesLineIn.substring(indexOfTileTag + TILE_TAG.length()).split(",");
+//                townFolkSpritesLineOut = spriteCondition + TILE_TAG + spriteInfo[0] + "," + spriteInfo[1] + "," + spriteInfo[2] + "," + (Integer.parseInt(spriteInfo[3])*2) + "," + (Integer.parseInt(spriteInfo[4])*2) + "," + spriteInfo[5] + "," + spriteInfo[6];
+//            } else {
+//                townFolkSpritesLineOut = townFolkSpritesLineIn;
+//            }
+//            hires.append(townFolkSpritesLineOut);
+//        }
+
+        hires.append("# Sprites").append("\n");
+        hires.append(Files.readString(Path.of(CUSTOM_ASSETS + "/town-folk.txt"), StandardCharsets.UTF_8));
+        hires.append("\n").append("\n");
+        copyDirectory(ORIGINAL_ASSETS + "/sprites", HDPACK_ASSETS + "/sprites");
 
         hires.append("# Map Backgrounds").append("\n");
         addBackgrounds(hires, getMapBackgrounds(ORIGINAL_ASSETS), ORIGINAL_ASSETS);
